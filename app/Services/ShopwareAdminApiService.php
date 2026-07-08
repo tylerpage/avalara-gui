@@ -247,7 +247,7 @@ class ShopwareAdminApiService
 
     private function getAccessToken(): string
     {
-        return Cache::remember(self::TOKEN_CACHE_KEY, now()->addMinutes(9), function (): string {
+        return Cache::remember($this->tokenCacheKey(), now()->addMinutes(9), function (): string {
             $baseUrl = rtrim((string) ConnectionConfig::shopwareUrl(), '/');
             $clientId = ConnectionConfig::shopwareClientId();
             $clientSecret = ConnectionConfig::shopwareClientSecret();
@@ -448,5 +448,10 @@ class ShopwareAdminApiService
             'transactions' => $transactions,
             'authnetTransId' => collect($transactions)->pluck('authnetTransId')->filter()->first(),
         ];
+    }
+
+    public function tokenCacheKey(): string
+    {
+        return self::TOKEN_CACHE_KEY.'_'.app(DashboardContext::class)->id();
     }
 }

@@ -6,6 +6,7 @@ use App\Models\IntegrationSetting;
 use App\Services\AuthorizeNetApiService;
 use App\Services\AvalaraApiService;
 use App\Services\ConnectionConfig;
+use App\Services\DashboardContext;
 use App\Services\PasscodeService;
 use App\Services\ShopwareAdminApiService;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ use RuntimeException;
 
 class SettingsController extends Controller
 {
-    public function edit(PasscodeService $passcode): Response
+    public function edit(PasscodeService $passcode, DashboardContext $dashboards): Response
     {
         return Inertia::render('Settings/Edit', [
             'settings' => [
@@ -34,11 +35,12 @@ class SettingsController extends Controller
                 'has_gui_passcode' => $passcode->hasStoredPasscode(),
                 'gui_passcode_from_env' => filled(env('GUI_PASSCODE')) && ! $passcode->hasStoredPasscode(),
             ],
-            'webhookUrl' => url('/webhooks/shopware'),
+            'webhookUrl' => $dashboards->current()->webhookUrl(),
+            'dashboardName' => $dashboards->current()->name,
         ]);
     }
 
-    public function update(Request $request, PasscodeService $passcode): RedirectResponse
+    public function update(Request $request, PasscodeService $passcode, ShopwareAdminApiService $shopware): RedirectResponse
     {
         $validated = $request->validate([
             'shopware_url' => ['required', 'url', 'max:255'],
@@ -92,7 +94,7 @@ class SettingsController extends Controller
             $passcode->setPasscode($validated['gui_passcode']);
         }
 
-        Cache::forget('shopware_admin_access_token');
+        Cache::forget($shopware->tokenCacheKey());
 
         return back()->with('success', 'Connection settings saved.');
     }

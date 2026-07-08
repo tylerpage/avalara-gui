@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\WebhookEvent;
+use App\Services\DashboardContext;
 use App\Services\OrderReviewService;
 use App\Services\ShopwareAdminApiService;
 use App\Services\WebhookStorageService;
@@ -13,7 +14,7 @@ use RuntimeException;
 
 class WebhookController extends Controller
 {
-    public function index(Request $request, WebhookStorageService $webhooks, OrderReviewService $reviews): Response
+    public function index(Request $request, WebhookStorageService $webhooks, OrderReviewService $reviews, DashboardContext $dashboards): Response
     {
         $page = max(1, (int) $request->query('page', 1));
         $returnOnly = $request->boolean('returnOnly', false);
@@ -39,7 +40,8 @@ class WebhookController extends Controller
                 'page' => $page,
             ],
             'counts' => $webhooks->counts(),
-            'webhookUrl' => url('/webhooks/shopware'),
+            'webhookUrl' => $dashboards->current()->webhookUrl(),
+            'dashboardName' => $dashboards->current()->name,
             'reviewCounts' => $reviews->counts(),
         ]);
     }

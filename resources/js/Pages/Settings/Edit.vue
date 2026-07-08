@@ -11,6 +11,10 @@ const props = defineProps({
         type: String,
         default: '',
     },
+    dashboardName: {
+        type: String,
+        default: '',
+    },
     errors: {
         type: Object,
         default: () => ({}),
@@ -63,7 +67,7 @@ function testAuthnet() {
             <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 space-y-3">
                 <h2 class="text-lg font-medium text-amber-300">Shopware Webhook Receiver</h2>
                 <p class="text-sm text-slate-400">
-                    Register this URL in Shopware Admin (Settings → System → Webhooks) to capture incoming events.
+                    Register this URL in Shopware Admin for the <strong class="text-slate-200">{{ dashboardName }}</strong> dashboard.
                     Return-related events like <code class="text-sky-300">order_return.written</code> and
                     <code class="text-sky-300">state_enter.order_return.state.*</code> are automatically detected.
                 </p>
@@ -76,8 +80,8 @@ function testAuthnet() {
                 <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 space-y-4">
                     <h2 class="text-lg font-medium text-amber-300">GUI Passcode</h2>
                     <p class="text-sm text-slate-400">
-                        Require a passcode before anyone can view orders, webhooks, or settings.
-                        The webhook receiver stays public so Shopware can still POST events.
+                        Require a passcode before anyone can view this dashboard.
+                        Each dashboard can have its own passcode. The webhook receiver stays public.
                     </p>
 
                     <p v-if="settings.gui_passcode_from_env" class="text-sm text-amber-200">

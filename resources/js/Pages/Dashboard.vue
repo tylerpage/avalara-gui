@@ -20,7 +20,7 @@ const webhookCounts = computed(() => page.props.webhookCounts ?? { total: 0, ret
                 </p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Link
                     href="/orders/review-queue"
                     class="rounded-xl border border-slate-800 bg-slate-900/60 p-6 hover:border-amber-700 transition"
@@ -65,6 +65,16 @@ const webhookCounts = computed(() => page.props.webhookCounts ?? { total: 0, ret
                     </div>
                     <p class="mt-2 text-sm text-slate-400">
                         {{ webhookCounts.total }} received — monitor Shopware return events and inspect payloads.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/dashboards"
+                    class="rounded-xl border border-slate-800 bg-slate-900/60 p-6 hover:border-sky-700 transition"
+                >
+                    <h2 class="text-lg font-medium text-sky-300">Manage Dashboards</h2>
+                    <p class="mt-2 text-sm text-slate-400">
+                        Create and switch between isolated workspaces — each with its own shop, webhooks, and reviews.
                     </p>
                 </Link>
 

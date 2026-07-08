@@ -7,17 +7,23 @@ use App\Http\Controllers\PasscodeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\WebhookReceiverController;
+use App\Http\Controllers\WorkspaceDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/webhooks/shopware', [WebhookReceiverController::class, 'shopware'])->name('webhooks.shopware');
+Route::post('/webhooks/{slug}', [WebhookReceiverController::class, 'receive'])->name('webhooks.receive');
 
 Route::get('/passcode', [PasscodeController::class, 'show'])->name('passcode.show');
 Route::post('/passcode', [PasscodeController::class, 'store'])->name('passcode.store');
 
-Route::middleware('passcode')->group(function (): void {
+Route::middleware(['passcode', 'dashboard'])->group(function (): void {
     Route::post('/passcode/logout', [PasscodeController::class, 'destroy'])->name('passcode.destroy');
 
     Route::get('/', DashboardController::class)->name('dashboard');
+
+    Route::get('/dashboards', [WorkspaceDashboardController::class, 'index'])->name('dashboards.index');
+    Route::post('/dashboards', [WorkspaceDashboardController::class, 'store'])->name('dashboards.store');
+    Route::post('/dashboards/{dashboard}/switch', [WorkspaceDashboardController::class, 'switch'])->name('dashboards.switch');
 
     Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');

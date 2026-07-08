@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToDashboard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WebhookEvent extends Model
 {
+    use BelongsToDashboard;
+
     protected $fillable = [
+        'dashboard_id',
         'shopware_event_id',
         'event_name',
         'source_url',
@@ -47,5 +52,10 @@ class WebhookEvent extends Model
     public function scopeForOrder(Builder $query, string $orderId): Builder
     {
         return $query->where('shopware_order_id', $orderId);
+    }
+
+    public function dashboard(): BelongsTo
+    {
+        return $this->belongsTo(Dashboard::class);
     }
 }

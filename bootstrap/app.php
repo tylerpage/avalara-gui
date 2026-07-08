@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'passcode' => \App\Http\Middleware\RequirePasscode::class,
+            'dashboard' => \App\Http\Middleware\EnsureDashboard::class,
         ]);
 
         $middleware->web(append: [
