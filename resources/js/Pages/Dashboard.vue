@@ -6,6 +6,7 @@ import { computed } from 'vue';
 const page = usePage();
 const connection = computed(() => page.props.connection ?? {});
 const reviewCounts = computed(() => page.props.reviewCounts ?? { due: 0, today: 0, overdue: 0 });
+const webhookCounts = computed(() => page.props.webhookCounts ?? { total: 0, return_related: 0 });
 </script>
 
 <template>
@@ -19,7 +20,7 @@ const reviewCounts = computed(() => page.props.reviewCounts ?? { due: 0, today: 
                 </p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Link
                     href="/orders/review-queue"
                     class="rounded-xl border border-slate-800 bg-slate-900/60 p-6 hover:border-amber-700 transition"
@@ -46,6 +47,24 @@ const reviewCounts = computed(() => page.props.reviewCounts ?? { due: 0, today: 
                     <h2 class="text-lg font-medium text-sky-300">Browse Orders</h2>
                     <p class="mt-2 text-sm text-slate-400">
                         Search Shopware orders and drill into line items, returns, and Avalara transaction data.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/webhooks"
+                    class="rounded-xl border border-slate-800 bg-slate-900/60 p-6 hover:border-amber-700 transition"
+                >
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="text-lg font-medium text-amber-300">Webhooks</h2>
+                        <span
+                            v-if="webhookCounts.return_related > 0"
+                            class="rounded-full bg-amber-500 text-black text-sm font-medium px-2 py-0.5"
+                        >
+                            {{ webhookCounts.return_related }}
+                        </span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-400">
+                        {{ webhookCounts.total }} received — monitor Shopware return events and inspect payloads.
                     </p>
                 </Link>
 

@@ -6,6 +6,7 @@ use App\Models\IntegrationSetting;
 use App\Services\AuthorizeNetApiService;
 use App\Services\AvalaraApiService;
 use App\Services\ConnectionConfig;
+use App\Services\PasscodeService;
 use App\Services\ShopwareAdminApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use RuntimeException;
 
 class SettingsController extends Controller
 {
-    public function edit(): Response
+    public function edit(PasscodeService $passcode): Response
     {
         return Inertia::render('Settings/Edit', [
             'settings' => [
@@ -30,11 +31,14 @@ class SettingsController extends Controller
                 'authnet_api_login_id' => ConnectionConfig::authnetApiLoginId() ?? '',
                 'has_authnet_transaction_key' => filled(ConnectionConfig::authnetTransactionKey()),
                 'authnet_is_live' => ConnectionConfig::authnetIsLive(),
+                'has_gui_passcode' => $passcode->hasStoredPasscode(),
+                'gui_passcode_from_env' => filled(env('GUI_PASSCODE')) && ! $passcode->hasStoredPasscode(),
             ],
+            'webhookUrl' => url('/webhooks/shopware'),
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, PasscodeService $passcode): RedirectResponse
     {
         $validated = $request->validate([
             'shopware_url' => ['required', 'url', 'max:255'],
@@ -47,6 +51,8 @@ class SettingsController extends Controller
             'authnet_api_login_id' => ['nullable', 'string', 'max:255'],
             'authnet_transaction_key' => ['nullable', 'string'],
             'authnet_is_live' => ['boolean'],
+            'gui_passcode' => ['nullable', 'string', 'min:4', 'max:255'],
+            'clear_gui_passcode' => ['boolean'],
         ]);
 
         if (! filled(ConnectionConfig::shopwareClientSecret()) && blank($validated['shopware_client_secret'] ?? null)) {
@@ -79,6 +85,12 @@ class SettingsController extends Controller
         }
 
         IntegrationSetting::set(ConnectionConfig::AUTHNET_IS_LIVE, $validated['authnet_is_live'] ? '1' : '0');
+
+        if ($validated['clear_gui_passcode'] ?? false) {
+            $passcode->clearPasscode();
+        } elseif (filled($validated['gui_passcode'] ?? null)) {
+            $passcode->setPasscode($validated['gui_passcode']);
+        }
 
         Cache::forget('shopware_admin_access_token');
 

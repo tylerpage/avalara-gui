@@ -1,11 +1,16 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const page = usePage();
 const connection = computed(() => page.props.connection ?? {});
 const reviewCounts = computed(() => page.props.reviewCounts ?? { due: 0 });
+const passcodeRequired = computed(() => page.props.passcode?.required ?? false);
+
+function logout() {
+    router.post('/passcode/logout');
+}
 </script>
 
 <template>
@@ -16,6 +21,15 @@ const reviewCounts = computed(() => page.props.reviewCounts ?? { due: 0 });
                 <nav class="flex items-center gap-4 text-sm">
                     <Link href="/" class="hover:text-sky-400">Dashboard</Link>
                     <Link href="/orders" class="hover:text-sky-400">Orders</Link>
+                    <Link href="/webhooks" class="hover:text-sky-400 inline-flex items-center gap-1.5">
+                        Webhooks
+                        <span
+                            v-if="(page.props.webhookCounts?.return_related ?? 0) > 0"
+                            class="rounded-full bg-amber-500 text-black text-xs font-medium px-1.5 py-0.5 min-w-[1.25rem] text-center"
+                        >
+                            {{ page.props.webhookCounts.return_related }}
+                        </span>
+                    </Link>
                     <Link href="/orders/review-queue" class="hover:text-sky-400 inline-flex items-center gap-1.5">
                         Review Queue
                         <span
@@ -26,6 +40,14 @@ const reviewCounts = computed(() => page.props.reviewCounts ?? { due: 0 });
                         </span>
                     </Link>
                     <Link href="/settings" class="hover:text-sky-400">Settings</Link>
+                    <button
+                        v-if="passcodeRequired"
+                        type="button"
+                        class="hover:text-sky-400"
+                        @click="logout"
+                    >
+                        Log out
+                    </button>
                 </nav>
             </div>
             <div

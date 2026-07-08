@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AuthorizeNetApiService;
 use App\Services\AvalaraApiService;
 use App\Services\ConnectionConfig;
+use App\Models\WebhookEvent;
 use App\Services\OrderReviewService;
 use App\Services\ShopwareAdminApiService;
 use Illuminate\Http\Request;
@@ -71,6 +72,19 @@ class OrderController extends Controller
         $avalaraError = null;
         $authnetError = null;
         $review = $reviews->serialize($reviews->getForOrder($orderId));
+        $webhooks = WebhookEvent::query()
+            ->forOrder($orderId)
+            ->orderByDesc('received_at')
+            ->limit(20)
+            ->get()
+            ->map(fn (WebhookEvent $event) => [
+                'id' => $event->id,
+                'eventName' => $event->event_name,
+                'isReturnRelated' => $event->is_return_related,
+                'shopwareReturnId' => $event->shopware_return_id,
+                'receivedAt' => $event->received_at?->toIso8601String(),
+            ])
+            ->all();
 
         if (! $shopware->isConfigured()) {
             return Inertia::render('Orders/Show', [
@@ -87,6 +101,7 @@ class OrderController extends Controller
                 'error' => null,
                 'avalaraError' => null,
                 'authnetError' => null,
+                'webhooks' => $webhooks,
             ]);
         }
 
@@ -155,6 +170,7 @@ class OrderController extends Controller
             'error' => $error,
             'avalaraError' => $avalaraError,
             'authnetError' => $authnetError,
+            'webhooks' => $webhooks,
         ]);
     }
 }

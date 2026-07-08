@@ -177,6 +177,44 @@ class ShopwareAdminApiService
     /**
      * @return array<string, mixed>|null
      */
+    public function getOrderReturn(string $returnId): ?array
+    {
+        $response = $this->client()->post('/api/search/order-return', [
+            'limit' => 1,
+            'filter' => [
+                [
+                    'type' => 'equals',
+                    'field' => 'id',
+                    'value' => $returnId,
+                ],
+            ],
+            'associations' => [
+                'lineItems' => [
+                    'associations' => [
+                        'lineItem' => [],
+                    ],
+                ],
+                'state' => [],
+                'order' => [],
+            ],
+        ]);
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $return = $response->json('data.0');
+
+        if (! is_array($return)) {
+            return null;
+        }
+
+        return $this->formatOrderReturn($return);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
     public function searchReturnsAvalara(?string $orderNumber = null, ?string $returnNumber = null, int $limit = 50, int $offset = 0): ?array
     {
         $response = $this->client()->get('/api/_action/returns-avalara/search', array_filter([
@@ -260,6 +298,41 @@ class ShopwareAdminApiService
                 $order['orderCustomer']['attributes']['lastName'] ?? $order['orderCustomer']['lastName'] ?? null,
             ]))),
             'currency' => $order['currency']['attributes']['isoCode'] ?? $order['currency']['isoCode'] ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $return
+     * @return array<string, mixed>
+     */
+    private function formatOrderReturn(array $return): array
+    {
+        $attributes = $return['attributes'] ?? $return;
+        $order = $return['order'] ?? [];
+        $orderAttributes = $order['attributes'] ?? $order;
+
+        return [
+            'id' => $return['id'] ?? $attributes['id'] ?? null,
+            'returnNumber' => $attributes['returnNumber'] ?? null,
+            'requestedAt' => $attributes['requestedAt'] ?? null,
+            'orderId' => $order['id'] ?? $orderAttributes['id'] ?? $attributes['orderId'] ?? null,
+            'orderNumber' => $orderAttributes['orderNumber'] ?? null,
+            'state' => $return['state']['attributes']['technicalName'] ?? $return['state']['technicalName'] ?? null,
+            'lineItems' => collect($return['lineItems'] ?? [])->map(function (array $returnLine): array {
+                $attrs = $returnLine['attributes'] ?? $returnLine;
+                $orderLine = $returnLine['lineItem'] ?? [];
+                $orderLineAttrs = $orderLine['attributes'] ?? $orderLine;
+                $price = $attrs['price'] ?? $returnLine['price'] ?? [];
+
+                return [
+                    'id' => $returnLine['id'] ?? $attrs['id'] ?? null,
+                    'quantity' => $attrs['quantity'] ?? null,
+                    'label' => $orderLineAttrs['label'] ?? null,
+                    'productNumber' => $orderLineAttrs['payload']['productNumber'] ?? null,
+                    'unitPrice' => $price['unitPrice'] ?? null,
+                    'totalPrice' => $price['totalPrice'] ?? null,
+                ];
+            })->values()->all(),
         ];
     }
 

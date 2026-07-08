@@ -7,6 +7,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    webhookUrl: {
+        type: String,
+        default: '',
+    },
     errors: {
         type: Object,
         default: () => ({}),
@@ -24,6 +28,8 @@ const form = useForm({
     authnet_api_login_id: props.settings.authnet_api_login_id,
     authnet_transaction_key: '',
     authnet_is_live: props.settings.authnet_is_live,
+    gui_passcode: '',
+    clear_gui_passcode: false,
 });
 
 function save() {
@@ -54,7 +60,57 @@ function testAuthnet() {
                 </p>
             </div>
 
+            <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 space-y-3">
+                <h2 class="text-lg font-medium text-amber-300">Shopware Webhook Receiver</h2>
+                <p class="text-sm text-slate-400">
+                    Register this URL in Shopware Admin (Settings → System → Webhooks) to capture incoming events.
+                    Return-related events like <code class="text-sky-300">order_return.written</code> and
+                    <code class="text-sky-300">state_enter.order_return.state.*</code> are automatically detected.
+                </p>
+                <code class="block rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-sky-300 break-all">
+                    {{ webhookUrl }}
+                </code>
+            </section>
+
             <form class="space-y-8" @submit.prevent="save">
+                <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 space-y-4">
+                    <h2 class="text-lg font-medium text-amber-300">GUI Passcode</h2>
+                    <p class="text-sm text-slate-400">
+                        Require a passcode before anyone can view orders, webhooks, or settings.
+                        The webhook receiver stays public so Shopware can still POST events.
+                    </p>
+
+                    <p v-if="settings.gui_passcode_from_env" class="text-sm text-amber-200">
+                        A passcode is currently set via the <code class="text-sky-300">GUI_PASSCODE</code> environment variable.
+                        Save a new passcode here to store it in the database instead.
+                    </p>
+
+                    <p v-else-if="settings.has_gui_passcode" class="text-sm text-emerald-300">
+                        Passcode protection is enabled.
+                    </p>
+
+                    <label class="block space-y-1">
+                        <span class="text-sm text-slate-300">New passcode</span>
+                        <input
+                            v-model="form.gui_passcode"
+                            type="password"
+                            :placeholder="settings.has_gui_passcode || settings.gui_passcode_from_env ? 'Leave blank to keep current passcode' : 'Set a passcode to lock the GUI'"
+                            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                        />
+                        <p v-if="form.errors.gui_passcode" class="text-sm text-red-400">
+                            {{ form.errors.gui_passcode }}
+                        </p>
+                    </label>
+
+                    <label
+                        v-if="settings.has_gui_passcode"
+                        class="flex items-center gap-2 text-sm text-slate-300"
+                    >
+                        <input v-model="form.clear_gui_passcode" type="checkbox" class="rounded border-slate-600" />
+                        Remove stored passcode and disable protection
+                    </label>
+                </section>
+
                 <section class="rounded-xl border border-slate-800 bg-slate-900/40 p-6 space-y-4">
                     <h2 class="text-lg font-medium text-sky-300">Shopware Admin API</h2>
                     <p class="text-sm text-slate-400">

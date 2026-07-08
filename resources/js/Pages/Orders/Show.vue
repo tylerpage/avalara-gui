@@ -58,6 +58,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    webhooks: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const reviewForm = useForm({
@@ -465,6 +469,49 @@ function statusClass(status) {
                                 <td class="px-4 py-3">{{ formatMoney(line.unitPrice, order.currency) }}</td>
                                 <td class="px-4 py-3">{{ formatMoney(line.totalPrice, order.currency) }}</td>
                                 <td class="px-4 py-3">{{ formatMoney(line.taxTotal, order.currency) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section v-if="webhooks.length" class="rounded-xl border border-slate-800 overflow-hidden">
+                    <div class="border-b border-slate-800 bg-slate-900/80 px-4 py-3 flex items-center justify-between gap-3">
+                        <h2 class="text-lg font-medium text-sky-300">Webhooks for This Order</h2>
+                        <Link href="/webhooks?returnOnly=1" class="text-sm text-sky-400 hover:underline">
+                            View all return webhooks
+                        </Link>
+                    </div>
+                    <table class="min-w-full text-sm">
+                        <thead class="text-left text-slate-400 bg-slate-900/40">
+                            <tr>
+                                <th class="px-4 py-3 font-medium">Received</th>
+                                <th class="px-4 py-3 font-medium">Event</th>
+                                <th class="px-4 py-3 font-medium">Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="webhook in webhooks"
+                                :key="webhook.id"
+                                class="border-t border-slate-800 hover:bg-slate-900/50"
+                            >
+                                <td class="px-4 py-3 text-slate-400">{{ formatDate(webhook.receivedAt) }}</td>
+                                <td class="px-4 py-3">
+                                    <Link :href="`/webhooks/${webhook.id}`" class="text-sky-400 hover:underline">
+                                        {{ webhook.eventName }}
+                                    </Link>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        v-if="webhook.isReturnRelated"
+                                        class="rounded-full bg-amber-900/60 text-amber-200 px-2 py-0.5 text-xs"
+                                    >
+                                        Return
+                                    </span>
+                                    <span v-else class="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
+                                        Other
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

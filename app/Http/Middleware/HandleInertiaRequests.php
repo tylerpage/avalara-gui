@@ -23,6 +23,10 @@ class HandleInertiaRequests extends Middleware
                 'authnetConfigured' => \App\Services\ConnectionConfig::isAuthnetConfigured(),
             ],
             'reviewCounts' => fn () => app(\App\Services\OrderReviewService::class)->counts(),
+            'webhookCounts' => fn () => app(\App\Services\WebhookStorageService::class)->counts(),
+            'passcode' => [
+                'required' => fn () => app(\App\Services\PasscodeService::class)->isRequired(),
+            ],
         ];
     }
 }
